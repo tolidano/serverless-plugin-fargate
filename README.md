@@ -15,4 +15,14 @@ Enter Fargate, which removes some of the abstraction in exchange for more contro
 
 # Methodology
 
-This plugin is implemented to fire after the deploy:deploy phase of the core serverless framework. At that point, you have a valid code package uploaded to Lambda and an API Gateway pointing to it.
+This plugin is designed to fire after the deploy:deploy phase of the core serverless framework. At that point, you have a valid code package uploaded to Lambda and, optionally, an API Gateway pointing to it. The plugin will perform the following steps:
+1. Download the code out of Lambda
+2. Create (or re-use) an AWS CodeBuild project configured:
+- to use the aws/codebuild/docker image (based on the ubuntu/docker image)
+- execute a custom build script
+3. The build script will do the following:
+- download the appropriate lambci run container from here: https://github.com/lambci/docker-lambda
+- compose a docker container (via a dynamic Dockerfile) to execute the downloaded Lambda code
+- upload the container to ECR
+4. Use dynamically-generated CloudFormation templates to create a Fargate task and service
+5. Create an ALB if there is an API gateway and register it as a viable target
