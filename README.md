@@ -25,4 +25,8 @@ This plugin is designed to fire after the deploy:deploy phase of the core server
 - compose a docker container (via a dynamic Dockerfile) to execute the downloaded Lambda code
 - upload the container to ECR
 4. Use dynamically-generated CloudFormation templates to create a Fargate task and service
-5. Create an ALB if there is an API gateway and register it as a viable target
+5. Create an ALB if there is an API gateway and register it as a viable target (overwriting the Lambda/Lambda-Proxy integration)
+
+# Notes
+
+Fargate still needs to have an autoscaling policy applied to understand the minimum and maximum number of containers to keep available. Fargate will likely not allow you to shut down the last task, but we can easily use some cloudwatch metrics and a periodic Lambda monitor to determine that the task isn't being used and shut it down, redirecting the API Gateway back to the Lambda. This will again result in paying the cold start penalty, but that may be preferable. Also note that Fargate is significantly more expensive than just a Lambda alone.
